@@ -1,0 +1,23 @@
+# Config files (contains personal calendar URLs)
+*.json
+
+# Backup files
+*.bak
+*.backup
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Don't ignore the calendar files - we want those in the repo!
+!*.ics

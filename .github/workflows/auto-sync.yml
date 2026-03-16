@@ -1,0 +1,66 @@
+# GitHub Actions Workflow for Automatic Calendar Syncing
+# This runs automatically every 5 minutes without needing your computer on!
+# Note: GitHub may delay runs to 15-30 minutes on free accounts during high load
+
+name: Auto-Sync Airbnb Calendars Every 5 Minutes
+
+on:
+  # Schedule: Run every 5 minutes (GitHub's minimum)
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes (may be delayed to 15-30 min by GitHub)
+    # Alternative schedules (uncomment to use instead):
+    # - cron: '*/15 * * * *'  # Every 15 minutes (more reliable)
+    # - cron: '*/30 * * * *'  # Every 30 minutes (recommended for free accounts)
+    # - cron: '0 * * * *'     # Every hour
+    # - cron: '0 */2 * * *'   # Every 2 hours
+
+  # Allow manual triggering from GitHub Actions tab
+  workflow_dispatch:
+
+  # Also run on push to main (for testing)
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/auto-sync.yml'
+      - 'sync-script.js'
+
+jobs:
+  sync-calendars:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install node-fetch
+
+      - name: Run sync script
+        env:
+          CALENDAR_CONFIG: ${{ secrets.CALENDAR_CONFIG }}
+        run: node sync-script.js
+
+      - name: Commit and push calendar updates
+        run: |
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # Add all .ics files
+          git add *.ics
+
+          # Only commit and push if there are changes
+          if ! git diff --staged --quiet; then
+            TIMESTAMP=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
+            git commit -m "🔄 Auto-sync calendars - $TIMESTAMP [skip ci]"
+            git push
+            echo "✅ Calendars updated and pushed to GitHub"
+          else
+            echo "ℹ️ No changes detected - calendars are up to date"
+          fi

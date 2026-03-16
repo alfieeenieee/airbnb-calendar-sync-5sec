@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airbnb Calendar Sync Tool v2 - With Hosted URLs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #FF5A5F;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .version-badge {
+            background: #00A699;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .subtitle {
+            color: #767676;
+            margin-bottom: 30px;
+        }
+
+        .property-section {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #FF5A5F;
+        }
+
+        .property-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .property-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .remove-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-btn:hover {
+            background: #cc0000;
+        }
+
+        .calendar-feeds {
+            margin-top: 10px;
+        }
+
+        .feed-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .feed-label {
+            font-size: 13px;
+            color: #767676;
+            margin-bottom: 5px;
+        }
+
+        .feed-url {
+            font-size: 12px;
+            color: #333;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            background: #FF5A5F;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #E00007;
+        }
+
+        .btn-secondary {
+            background: #008489;
+        }
+
+        .btn-secondary:hover {
+            background: #006367;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .add-feed-btn {
+            background: #00A699;
+            padding: 8px 16px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .add-feed-btn:hover {
+            background: #008489;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .sync-results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f7f7f7;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .sync-results h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .booking-list {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .booking-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .booking-item:last-child {
+            border-bottom: none;
+        }
+
+        .booking-dates {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .booking-source {
+            color: #767676;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .hosted-urls-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+
+        .hosted-urls-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .url-box {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+        }
+
+        .url-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .url-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #333;
+            word-break: break-all;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .copy-btn {
+            background: #00A699;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-right: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #008489;
+        }
+
+        .copy-btn.copied {
+            background: #28a745;
+        }
+
+        .download-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .download-btn {
+            background: #008489;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .auto-sync-settings {
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .auto-sync-settings h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .instructions {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .instructions h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #333;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .hosting-setup {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 2px solid #00A699;
+        }
+
+        .hosting-setup h3 {
+            color: #00A699;
+            margin-bottom: 15px;
+        }
+
+        .hosting-option {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .hosting-option:hover {
+            border-color: #00A699;
+            background: #f0f8ff;
+        }
+
+        .hosting-option.active {
+            border-color: #FF5A5F;
+            background: #fff5f5;
+        }
+
+        .hosting-option input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .hosting-option-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .hosting-option-desc {
+            font-size: 13px;
+            color: #767676;
+        }
+
+        .server-config {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .server-config.active {
+            display: block;
+        }
+
+        .alert-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+
+        .alert-box.info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+        }
+
+        .alert-box.success {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Airbnb Calendar Sync Tool <span class="version-badge">v2.0 - Hosted URLs</span></h1>
+        <p class="subtitle">Prevent double bookings with automatic URL-based syncing</p>
+
+        <div class="instructions">
+            <h3>🚀 What's New in v2.0:</h3>
+            <ol>
+                <li><strong>Hosted Calendar URLs</strong> - Generate permanent URLs that Airbnb auto-refreshes</li>
+                <li><strong>No More Re-importing</strong> - Add new listings without updating existing ones</li>
+                <li><strong>Multiple Hosting Options</strong> - Local server, Dropbox, Google Drive, or GitHub</li>
+                <li><strong>Automatic Updates</strong> - Airbnb pulls changes automatically every 4-24 hours</li>
+            </ol>
+        </div>
+
+        <div class="hosting-setup">
+            <h3>⚙️ Choose Your Hosting Method</h3>
+            <p style="color: #767676; margin-bottom: 15px; font-size: 14px;">
+                Select how you want to host your master calendar URLs:
+            </p>
+
+            <div class="hosting-option" onclick="selectHosting('github')">
+                <input type="radio" name="hosting" id="hosting-github" value="github" checked>
+                <label for="hosting-github">
+                    <div class="hosting-option-title">🐙 GitHub Pages (Recommended - You're already here!)</div>
+                    <div class="hosting-option-desc">Host on GitHub. Free, reliable, already set up!</div>
+                </label>
+            </div>
+
+            <div class="hosting-option" onclick="selectHosting('dropbox')">
+                <input type="radio" name="hosting" id="hosting-dropbox" value="dropbox">
+                <label for="hosting-dropbox">
+                    <div class="hosting-option-title">📦 Dropbox</div>
+                    <div class="hosting-option-desc">Upload to Dropbox and use public links. No technical setup needed.</div>
+                </label>
+            </div>
+
+            <div class="hosting-option" onclick="selectHosting('manual')">
+                <input type="radio" name="hosting" id="hosting-manual" value="manual">
+                <label for="hosting-manual">
+                    <div class="hosting-option-title">📥 Manual Download</div>
+                    <div class="hosting-option-desc">Download files and import manually to each listing.</div>
+                </label>
+            </div>
+
+            <div id="server-config-github" class="server-config active">
+                <h4 style="margin-bottom: 10px;">GitHub Pages Configuration</h4>
+                <label style="display: block; margin-bottom: 5px; font-size: 14px;">Your GitHub Pages URL (automatically detected):</label>
+                <input type="url" id="githubUrl" placeholder="https://username.github.io/airbnb-calendar-sync" readonly>
+                <p style="font-size: 13px; color: #767676; margin-top: 5px;">
+                    After syncing, upload the generated .ics files back to this GitHub repository
+                </p>
+            </div>
+
+            <div id="server-config-dropbox" class="server-config">
+                <h4 style="margin-bottom: 10px;">Dropbox Configuration</h4>
+                <p style="font-size: 13px; color: #767676; margin-bottom: 10px;">
+                    After syncing, save the calendar files to your Dropbox folder and get public URLs
+                </p>
+            </div>
+        </div>
+
+        <div id="properties"></div>
+
+        <button class="btn" onclick="addProperty()">+ Add Property</button>
+
+        <div class="controls">
+            <button class="btn btn-secondary" onclick="syncCalendars()" id="syncBtn">
+                🔄 Sync All Calendars
+            </button>
+            <button class="btn" onclick="saveConfiguration()">
+                💾 Save Configuration
+            </button>
+            <button class="btn" onclick="loadConfiguration()">
+                📂 Load Configuration
+            </button>
+        </div>
+
+        <div class="auto-sync-settings">
+            <h3>⚙️ Auto-Sync Settings</h3>
+            <label>
+                Sync every:
+                <select id="autoSyncInterval">
+                    <option value="0">Manual only</option>
+                    <option value="300000">5 minutes</option>
+                    <option value="600000">10 minutes</option>
+                    <option value="900000">15 minutes</option>
+                    <option value="1800000">30 minutes</option>
+                    <option value="3600000">1 hour</option>
+                    <option value="7200000" selected>2 hours</option>
+                    <option value="14400000">4 hours</option>
+                    <option value="21600000">6 hours</option>
+                </select>
+            </label>
+            <button class="btn" onclick="updateAutoSync()">Update Auto-Sync</button>
+            <p id="autoSyncStatus" style="margin-top: 10px; color: #767676; font-size: 13px;"></p>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="sync-results" id="syncResults"></div>
+    </div>
+
+    <script>
+        let properties = [];
+        let autoSyncInterval = null;
+        let hostingMethod = 'github';
+        let masterCalendars = {};
+
+        // Auto-detect GitHub Pages URL
+        window.onload = function() {
+            // Set GitHub URL automatically
+            const githubUrl = window.location.origin + window.location.pathname.replace('/index.html', '').replace(/\/$/, '');
+            document.getElementById('githubUrl').value = githubUrl;
+            localStorage.setItem('githubUrl', githubUrl);
+
+            const saved = localStorage.getItem('airbnbSyncConfig');
+            if (saved) {
+                properties = JSON.parse(saved);
+                renderProperties();
+                showStatus('Configuration loaded from last session', 'success');
+            }
+
+            const savedHosting = localStorage.getItem('hostingMethod');
+            if (savedHosting) {
+                selectHosting(savedHosting);
+            } else {
+                selectHosting('github');
+            }
+
+            const savedInterval = localStorage.getItem('autoSyncIntervalValue');
+            if (savedInterval) {
+                document.getElementById('autoSyncInterval').value = savedInterval;
+                updateAutoSync();
+            }
+        };
+
+        function selectHosting(method) {
+            hostingMethod = method;
+
+            document.querySelectorAll('.hosting-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            document.querySelector(`#hosting-${method}`).checked = true;
+            document.querySelector(`#hosting-${method}`).parentElement.parentElement.classList.add('active');
+
+            document.querySelectorAll('.server-config').forEach(config => {
+                config.classList.remove('active');
+            });
+            const configSection = document.getElementById(`server-config-${method}`);
+            if (configSection) {
+                configSection.classList.add('active');
+            }
+
+            localStorage.setItem('hostingMethod', method);
+        }
+
+        function addProperty() {
+            const name = prompt('Enter property name:');
+            if (name) {
+                properties.push({
+                    id: Date.now(),
+                    name: name,
+                    feeds: []
+                });
+                renderProperties();
+                autoSave();
+            }
+        }
+
+        function removeProperty(id) {
+            if (confirm('Remove this property?')) {
+                properties = properties.filter(p => p.id !== id);
+                renderProperties();
+                autoSave();
+            }
+        }
+
+        function addFeed(propertyId) {
+            const property = properties.find(p => p.id === propertyId);
+            const accountName = prompt('Enter Airbnb account name (e.g., "Account 1", "Personal"):');
+            if (!accountName) return;
+
+            const url = prompt('Paste the iCal export URL from Airbnb:');
+            if (url && url.includes('http')) {
+                property.feeds.push({
+                    id: Date.now(),
+                    accountName: accountName,
+                    url: url
+                });
+                renderProperties();
+                autoSave();
+            } else {
+                alert('Invalid URL. Please paste a valid iCal URL from Airbnb.');
+            }
+        }
+
+        function removeFeed(propertyId, feedId) {
+            const property = properties.find(p => p.id === propertyId);
+            property.feeds = property.feeds.filter(f => f.id !== feedId);
+            renderProperties();
+            autoSave();
+        }
+
+        function renderProperties() {
+            const container = document.getElementById('properties');
+            container.innerHTML = '';
+
+            properties.forEach(property => {
+                const div = document.createElement('div');
+                div.className = 'property-section';
+
+                let feedsHtml = '';
+                property.feeds.forEach(feed => {
+                    feedsHtml += `
+                        <div class="feed-item">
+                            <div>
+                                <div class="feed-label">📱 ${feed.accountName}</div>
+                                <div class="feed-url">${feed.url.substring(0, 60)}...</div>
+                            </div>
+                            <button class="remove-btn" onclick="removeFeed(${property.id}, ${feed.id})">Remove</button>
+                        </div>
+                    `;
+                });
+
+                div.innerHTML = `
+                    <div class="property-header">
+                        <div class="property-name">${property.name}</div>
+                        <button class="remove-btn" onclick="removeProperty(${property.id})">Remove Property</button>
+                    </div>
+                    <div class="calendar-feeds">
+                        ${feedsHtml}
+                        ${property.feeds.length === 0 ? '<p style="color: #767676; font-size: 13px;">No calendar feeds added yet</p>' : ''}
+                    </div>
+                    <button class="btn add-feed-btn" onclick="addFeed(${property.id})">+ Add Airbnb Account Calendar</button>
+                `;
+
+                container.appendChild(div);
+            });
+        }
+
+        async function syncCalendars() {
+            const btn = document.getElementById('syncBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Syncing...';
+
+            showStatus('Fetching calendars from all accounts...', 'info');
+
+            try {
+                const allBookings = {};
+
+                for (const property of properties) {
+                    allBookings[property.name] = [];
+
+                    for (const feed of property.feeds) {
+                        try {
+                            const events = await fetchICalFeed(feed.url);
+                            events.forEach(event => {
+                                allBookings[property.name].push({
+                                    ...event,
+                                    source: feed.accountName
+                                });
+                            });
+                        } catch (error) {
+                            console.error(`Error fetching ${feed.accountName}:`, error);
+                            showStatus(`Warning: Could not fetch calendar from ${feed.accountName}. This feed may be temporarily unavailable.`, 'warning');
+                        }
+                    }
+                }
+
+                masterCalendars = {};
+                for (const [propertyName, bookings] of Object.entries(allBookings)) {
+                    const icalContent = generateICalContent(propertyName, bookings);
+                    masterCalendars[propertyName] = icalContent;
+                }
+
+                displayResults(allBookings);
+                generateDownloadableCalendars(allBookings);
+                if (hostingMethod === 'github' || hostingMethod === 'dropbox') {
+                    generateHostedURLs();
+                }
+
+                showStatus('✅ Sync complete! See instructions below.', 'success');
+            } catch (error) {
+                showStatus('Error syncing calendars: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔄 Sync All Calendars';
+            }
+        }
+
+        async function fetchICalFeed(url) {
+            const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+            const response = await fetch(proxyUrl);
+            const text = await response.text();
+            return parseICalendar(text);
+        }
+
+        function parseICalendar(icalText) {
+            const events = [];
+            const lines = icalText.split('\n');
+            let currentEvent = null;
+
+            for (let line of lines) {
+                line = line.trim();
+
+                if (line === 'BEGIN:VEVENT') {
+                    currentEvent = {};
+                } else if (line === 'END:VEVENT') {
+                    if (currentEvent && currentEvent.start && currentEvent.end) {
+                        events.push(currentEvent);
+                    }
+                    currentEvent = null;
+                } else if (currentEvent) {
+                    if (line.startsWith('DTSTART')) {
+                        const date = line.split(':')[1];
+                        currentEvent.start = parseICalDate(date);
+                    } else if (line.startsWith('DTEND')) {
+                        const date = line.split(':')[1];
+                        currentEvent.end = parseICalDate(date);
+                    } else if (line.startsWith('SUMMARY')) {
+                        currentEvent.summary = line.substring(line.indexOf(':') + 1);
+                    }
+                }
+            }
+
+            return events;
+        }
+
+        function parseICalDate(dateStr) {
+            const year = dateStr.substring(0, 4);
+            const month = dateStr.substring(4, 6);
+            const day = dateStr.substring(6, 8);
+            return `${year}-${month}-${day}`;
+        }
+
+        function displayResults(allBookings) {
+            const resultsDiv = document.getElementById('syncResults');
+            resultsDiv.style.display = 'block';
+
+            let html = '<h2>📅 All Bookings</h2>';
+
+            for (const [propertyName, bookings] of Object.entries(allBookings)) {
+                html += `
+                    <div class="booking-list">
+                        <h3 style="color: #FF5A5F; margin-bottom: 10px;">${propertyName}</h3>
+                        ${bookings.length === 0 ? '<p style="color: #767676;">No bookings found</p>' : ''}
+                `;
+
+                bookings.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+                bookings.forEach(booking => {
+                    html += `
+                        <div class="booking-item">
+                            <div class="booking-dates">${booking.start} to ${booking.end}</div>
+                            <div class="booking-source">Source: ${booking.source} ${booking.summary ? '- ' + booking.summary : ''}</div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function generateDownloadableCalendars(allBookings) {
+            const resultsDiv = document.getElementById('syncResults');
+
+            let html = '<div class="download-section"><h3>📥 Download Master Calendars</h3>';
+
+            if (hostingMethod === 'github') {
+                html += '<p style="margin-bottom: 15px; color: #767676;">Download these files and upload them to your GitHub repository:</p>';
+            } else if (hostingMethod === 'dropbox') {
+                html += '<p style="margin-bottom: 15px; color: #767676;">Download these files and upload them to your Dropbox folder:</p>';
+            } else {
+                html += '<p style="margin-bottom: 15px; color: #767676;">Import these to each Airbnb account to prevent double bookings:</p>';
+            }
+
+            for (const [propertyName, bookings] of Object.entries(allBookings)) {
+                const icalContent = masterCalendars[propertyName];
+                const blob = new Blob([icalContent], { type: 'text/calendar' });
+                const url = URL.createObjectURL(blob);
+                const fileName = sanitizeFileName(propertyName);
+
+                html += `<button class="btn download-btn" onclick="downloadFile('${url}', '${fileName}.ics')">📥 Download ${propertyName} Calendar</button>`;
+            }
+
+            html += '</div>';
+            resultsDiv.innerHTML += html;
+        }
+
+        function downloadFile(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+        }
+
+        function sanitizeFileName(name) {
+            return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        }
+
+        function generateHostedURLs() {
+            const resultsDiv = document.getElementById('syncResults');
+
+            let html = '<div class="hosted-urls-section"><h3>🔗 Hosted Calendar URLs</h3>';
+            html += '<div class="alert-box success"><strong>✨ Import these URLs to Airbnb (one time only!):</strong><br>';
+            html += 'Once imported, Airbnb will automatically refresh these calendars. When you add a new listing, just import the same URL!</div>';
+
+            for (const propertyName of Object.keys(masterCalendars)) {
+                const fileName = sanitizeFileName(propertyName) + '.ics';
+                let calendarUrl = '';
+
+                if (hostingMethod === 'github') {
+                    const githubUrl = document.getElementById('githubUrl').value;
+                    calendarUrl = `${githubUrl}/${fileName}`;
+                } else if (hostingMethod === 'dropbox') {
+                    calendarUrl = `[Upload ${fileName} to Dropbox and enter URL here]`;
+                }
+
+                html += `
+                    <div class="url-box">
+                        <div class="url-title">📍 ${propertyName}</div>
+                        <div class="url-display" id="url-${sanitizeFileName(propertyName)}">${calendarUrl}</div>
+                        <button class="copy-btn" onclick="copyToClipboard('url-${sanitizeFileName(propertyName)}', this)">📋 Copy URL</button>
+                        <button class="btn" style="font-size: 13px; padding: 8px 16px;" onclick="showImportInstructions('${propertyName}')">📖 How to Import</button>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            resultsDiv.innerHTML += html;
+        }
+
+        function copyToClipboard(elementId, button) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = '✅ Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = '📋 Copy URL';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function showImportInstructions(propertyName) {
+            alert(`How to Import ${propertyName} Master Calendar to Airbnb:
+
+1. Log into your Airbnb account
+2. Go to Calendar for your listing
+3. Click "Availability Settings" or "Calendar Settings"
+4. Scroll to "Import Calendar" section
+5. Click "Import new calendar" or "Add calendar"
+6. Enter a name: "Master Calendar - ${propertyName}"
+7. Paste the URL you copied
+8. Click "Import" or "Add"
+
+✅ Repeat for EVERY listing on EVERY account!
+
+⚠️ Important: Once imported, Airbnb will automatically refresh this calendar every 4-24 hours. You never need to re-import unless you change hosting methods!`);
+        }
+
+        function generateICalContent(propertyName, bookings) {
+            let ical = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Airbnb Calendar Sync v2//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:${propertyName} - Master Calendar
+X-WR-TIMEZONE:UTC
+X-PUBLISHED-TTL:PT4H
+`;
+
+            bookings.forEach((booking, index) => {
+                const uid = `booking-${Date.now()}-${index}@calendarsync.local`;
+                const startDate = booking.start.replace(/-/g, '');
+                const endDate = booking.end.replace(/-/g, '');
+                const summary = booking.summary || 'Blocked';
+                const description = `Blocked from ${booking.source}`;
+
+                ical += `BEGIN:VEVENT
+DTSTART;VALUE=DATE:${startDate}
+DTEND;VALUE=DATE:${endDate}
+DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+UID:${uid}
+SUMMARY:${summary}
+DESCRIPTION:${description}
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+`;
+            });
+
+            ical += 'END:VCALENDAR';
+            return ical;
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function autoSave() {
+            localStorage.setItem('airbnbSyncConfig', JSON.stringify(properties));
+        }
+
+        function saveConfiguration() {
+            const config = {
+                properties: properties,
+                hostingMethod: hostingMethod,
+                githubUrl: document.getElementById('githubUrl').value
+            };
+
+            const dataStr = JSON.stringify(config, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'airbnb-sync-config-v2.json';
+            a.click();
+            showStatus('Configuration saved to file', 'success');
+        }
+
+        function loadConfiguration() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const config = JSON.parse(event.target.result);
+                        properties = config.properties || config;
+
+                        if (config.hostingMethod) {
+                            selectHosting(config.hostingMethod);
+                        }
+
+                        renderProperties();
+                        autoSave();
+                        showStatus('Configuration loaded successfully', 'success');
+                    } catch (error) {
+                        showStatus('Error loading configuration', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function updateAutoSync() {
+            const intervalValue = document.getElementById('autoSyncInterval').value;
+            const statusElement = document.getElementById('autoSyncStatus');
+
+            if (autoSyncInterval) {
+                clearInterval(autoSyncInterval);
+                autoSyncInterval = null;
+            }
+
+            if (intervalValue > 0) {
+                autoSyncInterval = setInterval(syncCalendars, parseInt(intervalValue));
+
+                // Display time in appropriate units
+                const ms = parseInt(intervalValue);
+                let timeText = '';
+                if (ms < 3600000) { // Less than 1 hour
+                    const minutes = ms / 60000;
+                    timeText = `${minutes} minute${minutes > 1 ? 's' : ''}`;
+                } else {
+                    const hours = ms / 3600000;
+                    timeText = `${hours} hour${hours > 1 ? 's' : ''}`;
+                }
+
+                statusElement.textContent = `✅ Auto-sync enabled: Syncing every ${timeText}`;
+                statusElement.style.color = '#28a745';
+                localStorage.setItem('autoSyncIntervalValue', intervalValue);
+            } else {
+                statusElement.textContent = '⏸️ Auto-sync disabled';
+                statusElement.style.color = '#767676';
+                localStorage.removeItem('autoSyncIntervalValue');
+            }
+        }
+    </script>
+</body>
+</html>
